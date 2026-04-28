@@ -1,0 +1,19 @@
+.DS_Store
+
+# Node / Next.js
+node_modules/
+.next/
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs
+*.log

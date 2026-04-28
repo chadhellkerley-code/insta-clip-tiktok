@@ -1,0 +1,59 @@
+{
+  "project": "Insta-Cli-Tiktok",
+  "version": "1.0.0",
+  "tiktok": {
+    "login_url": "https://www.tiktok.com/login/phone-or-email/email",
+    "base_url": "https://www.tiktok.com",
+    "selectors": {
+      "email_input": "input[name='username']",
+      "password_input": "input[type='password']",
+      "login_button": "button[data-e2e='login-button']",
+      "two_fa_input": "input[placeholder*='code']",
+      "two_fa_submit": "button[type='submit']",
+      "profile_avatar": "[data-e2e='profile-icon']",
+      "profile_username": "[data-e2e='user-title']",
+      "message_input": "[data-e2e='message-input']",
+      "message_send": "[data-e2e='message-send']",
+      "dm_button": "[data-e2e='message-button']",
+      "user_search": "[data-e2e='search-user-input']",
+      "captcha_frame": "iframe[src*='captcha']",
+      "cookie_banner": "[data-testid='cookie-banner']",
+      "accept_cookies": "button:has-text('Accept all')"
+    },
+    "delays": {
+      "login_wait": 60,
+      "page_load": 10,
+      "typing_speed": {
+        "min": 50,
+        "max": 150
+      },
+      "message_interval": {
+        "min": 3,
+        "max": 8
+      }
+    }
+  },
+  "browser": {
+    "default_viewport": {
+      "width": 1366,
+      "height": 768
+    },
+    "user_agents": [
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ],
+    "chrome_args": [
+      "--disable-blink-features=AutomationControlled",
+      "--disable-dev-shm-usage",
+      "--no-sandbox",
+      "--disable-web-security",
+      "--disable-features=IsolateOrigins,site-per-process",
+      "--disable-site-isolation-trials"
+    ]
+  },
+  "api": {
+    "local_agent_port": 8765,
+    "web_app_url": "http://localhost:3000",
+    "sync_interval": 5000
+  }
+}

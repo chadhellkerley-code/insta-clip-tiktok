@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id           String    @id @default(cuid())
+  username     String    @unique
+  email        String?
+  password     String
+  twoFaCode    String?
+  proxyIp      String?
+  proxyPort    String?
+  proxyUser    String?
+  proxyPass    String?
+  profilePath  String?
+  sessionData  String?   // JSON con cookies/storage
+  status       String    @default("inactive") // inactive, active, blocked, error
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  leads        Lead[]
+  messagesSent MessageLog[]
+
+  @@map("accounts")
+}
+
+model Lead {
+  id          String   @id @default(cuid())
+  tiktokUrl   String
+  username    String
+  displayName String?
+  status      String   @default("free") // free, contacted, rejected
+  accountId   String?
+  account     Account? @relation(fields: [accountId], references: [id])
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  messages    MessageLog[]
+
+  @@map("leads")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs      MessageLog[]
+
+  @@map("messages")
+}
+
+model MessageLog {
+  id        String   @id @default(cuid())
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  leadId    String
+  lead      Lead     @relation(fields: [leadId], references: [id])
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id])
+  status    String   @default("sent") // sent, failed, delivered
+  errorMsg  String?
+  sentAt    DateTime @default(now())
+
+  @@map("message_logs")
+}
+
+model CampaignSetting {
+  id                String @id @default(cuid())
+  workers           Int    @default(1)
+  browsersPerWorker Int    @default(1)
+  minDelaySeconds   Int    @default(30)
+  maxDelaySeconds   Int    @default(120)
+  messagesPerAccount Int   @default(50)
+  failureThreshold  Int    @default(5)
+  updatedAt         DateTime @updatedAt
+
+  @@map("campaign_settings")
+}
+
+model Campaign {
+  id          String   @id @default(cuid())
+  status      String   @default("stopped") // running, stopped, paused
+  startedAt   DateTime?
+  stoppedAt   DateTime?
+  totalSent   Int      @default(0)
+  totalFailed Int      @default(0)
+  activeAccounts Int   @default(0)
+  blockedAccounts Int  @default(0)
+  createdAt   DateTime @default(now())
+
+  @@map("campaigns")
+}

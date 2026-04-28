@@ -60,6 +60,8 @@ class BrowserManager:
         return str(tzlocal.get_localzone())
 
     async def start(self):
+        if self.playwright:
+            return
         self.playwright = await async_playwright().start()
 
     async def create_context(self, account_id: str, proxy: Optional[dict] = None) -> BrowserContext:
@@ -152,6 +154,7 @@ class BrowserManager:
 
         if self.playwright:
             await self.playwright.stop()
+            self.playwright = None
 
     async def human_type(self, page: Page, selector: str, text: str):
         """Escribir como humano con delays aleatorios"""

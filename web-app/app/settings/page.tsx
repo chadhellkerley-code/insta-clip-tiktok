@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   CheckCircle2,
 } from "lucide-react"
+import { agentFetch } from "@/lib/local-agent"
 
 interface CampaignSetting {
   id?: string
@@ -44,8 +45,7 @@ export default function SettingsPage() {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const res = await fetch("/api/settings")
-      const data = await res.json()
+      const data = await agentFetch<CampaignSetting>("/api/settings")
       setSettings(data)
     } catch (error) {
       console.error("Error fetching settings:", error)
@@ -59,9 +59,8 @@ export default function SettingsPage() {
   const handleSave = async () => {
     setLoading(true)
     try {
-      await fetch("/api/settings", {
+      await agentFetch("/api/settings", {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(settings),
       })
       setSaved(true)

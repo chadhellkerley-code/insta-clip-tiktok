@@ -23,6 +23,7 @@ import {
   MessageSquare,
   ArrowUpDown,
 } from "lucide-react"
+import { agentFetch } from "@/lib/local-agent"
 
 interface Message {
   id: string
@@ -39,8 +40,7 @@ export default function MessagesPage() {
 
   const fetchMessages = useCallback(async () => {
     try {
-      const res = await fetch("/api/messages")
-      const data = await res.json()
+      const data = await agentFetch<Message[]>("/api/messages")
       setMessages(data)
     } catch (error) {
       console.error("Error fetching messages:", error)
@@ -55,9 +55,8 @@ export default function MessagesPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await fetch("/api/messages", {
+      await agentFetch("/api/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
       setFormData({ content: "" })
@@ -72,7 +71,7 @@ export default function MessagesPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar este mensaje?")) return
     try {
-      await fetch(`/api/messages/${id}`, { method: "DELETE" })
+      await agentFetch(`/api/messages/${id}`, { method: "DELETE" })
       fetchMessages()
     } catch (error) {
       console.error("Error deleting message:", error)
@@ -81,9 +80,8 @@ export default function MessagesPage() {
 
   const handleToggleActive = async (id: string, active: boolean) => {
     try {
-      await fetch(`/api/messages/${id}`, {
+      await agentFetch(`/api/messages/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ active: !active }),
       })
       fetchMessages()
@@ -102,14 +100,12 @@ export default function MessagesPage() {
     const targetMessage = messages[newOrder]
 
     try {
-      await fetch(`/api/messages/${id}`, {
+      await agentFetch(`/api/messages/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order: targetMessage.order }),
       })
-      await fetch(`/api/messages/${targetMessage.id}`, {
+      await agentFetch(`/api/messages/${targetMessage.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ order: messages[index].order }),
       })
       fetchMessages()

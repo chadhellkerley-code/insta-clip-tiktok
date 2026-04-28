@@ -1,5 +1,6 @@
 import asyncio
 import json
+import random
 from datetime import datetime
 from playwright.async_api import Page, TimeoutError as PlaywrightTimeout
 from src.browser.manager import browser_manager

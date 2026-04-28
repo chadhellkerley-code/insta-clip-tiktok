@@ -31,6 +31,7 @@ import {
   UserX,
   User,
 } from "lucide-react"
+import { agentFetch } from "@/lib/local-agent"
 
 interface Lead {
   id: string
@@ -58,8 +59,7 @@ export default function LeadsPage() {
 
   const fetchLeads = useCallback(async () => {
     try {
-      const res = await fetch("/api/leads")
-      const data = await res.json()
+      const data = await agentFetch<Lead[]>("/api/leads")
       setLeads(data)
     } catch (error) {
       console.error("Error fetching leads:", error)
@@ -74,9 +74,8 @@ export default function LeadsPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await fetch("/api/leads", {
+      await agentFetch("/api/leads", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
       setFormData({ tiktokUrl: "", username: "", displayName: "", notes: "" })
@@ -91,7 +90,7 @@ export default function LeadsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar este lead?")) return
     try {
-      await fetch(`/api/leads/${id}`, { method: "DELETE" })
+      await agentFetch(`/api/leads/${id}`, { method: "DELETE" })
       fetchLeads()
     } catch (error) {
       console.error("Error deleting lead:", error)
@@ -100,9 +99,8 @@ export default function LeadsPage() {
 
   const handleStatusChange = async (id: string, status: string) => {
     try {
-      await fetch(`/api/leads/${id}`, {
+      await agentFetch(`/api/leads/${id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       })
       fetchLeads()

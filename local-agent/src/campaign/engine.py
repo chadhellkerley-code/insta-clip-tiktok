@@ -2,8 +2,9 @@ import asyncio
 import random
 from datetime import datetime
 from typing import List, Dict, Optional
+from uuid import uuid4
 from sqlalchemy.orm import Session
-from src.database.db import SessionLocal, Account, Lead, Message, MessageLog, CampaignSetting
+from src.database.db import SessionLocal, Account, Lead, Message, MessageLog, Campaign, CampaignSetting
 from src.browser.manager import browser_manager
 from src.tiktok.login import login_handler
 
@@ -24,6 +25,7 @@ class CampaignEngine:
             settings = db.query(CampaignSetting).first()
             if not settings:
                 settings = CampaignSetting(
+                    id=str(uuid4()),
                     workers=1,
                     browsersPerWorker=1,
                     minDelaySeconds=30,
@@ -76,6 +78,14 @@ class CampaignEngine:
             if lead and status == "sent":
                 lead.status = "contacted"
                 lead.accountId = account_id
+                lead.updatedAt = datetime.utcnow()
+
+            campaign = db.query(Campaign).order_by(Campaign.createdAt.desc()).first()
+            if campaign:
+                if status == "sent":
+                    campaign.totalSent += 1
+                else:
+                    campaign.totalFailed += 1
 
             db.commit()
         finally:
@@ -87,6 +97,7 @@ class CampaignEngine:
             account = db.query(Account).filter(Account.id == account_id).first()
             if account:
                 account.status = status
+                account.updatedAt = datetime.utcnow()
                 db.commit()
         finally:
             db.close()

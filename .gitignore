@@ -14,6 +14,9 @@ build/
 # Python
 __pycache__/
 *.pyc
+local-agent/data/
+local-agent/profiles/
+local-agent/sessions/
 
 # Logs
 *.log

@@ -28,6 +28,7 @@ import {
   Users,
   AlertTriangle,
 } from "lucide-react"
+import { agentFetch } from "@/lib/local-agent"
 
 interface MetricData {
   date: string
@@ -57,8 +58,7 @@ export default function MetricsPage() {
     setLoading(true)
     try {
       const days = timeRanges.find((t) => t.value === timeRange)?.days || 7
-      const res = await fetch(`/api/metrics?days=${days}`)
-      const data = await res.json()
+      const data = await agentFetch<MetricData[]>(`/api/metrics?days=${days}`)
       setMetrics(data)
     } catch (error) {
       console.error("Error fetching metrics:", error)

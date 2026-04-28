@@ -33,6 +33,7 @@ import {
   Lock,
   Shield,
 } from "lucide-react"
+import { agentFetch } from "@/lib/local-agent"
 
 interface Account {
   id: string
@@ -67,8 +68,7 @@ export default function AccountsPage() {
 
   const fetchAccounts = useCallback(async () => {
     try {
-      const res = await fetch("/api/accounts")
-      const data = await res.json()
+      const data = await agentFetch<Account[]>("/api/accounts")
       setAccounts(data)
     } catch (error) {
       console.error("Error fetching accounts:", error)
@@ -83,9 +83,8 @@ export default function AccountsPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      await fetch("/api/accounts", {
+      await agentFetch("/api/accounts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       })
       setFormData({
@@ -109,7 +108,7 @@ export default function AccountsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("¿Eliminar esta cuenta?")) return
     try {
-      await fetch(`/api/accounts/${id}`, { method: "DELETE" })
+      await agentFetch(`/api/accounts/${id}`, { method: "DELETE" })
       fetchAccounts()
     } catch (error) {
       console.error("Error deleting account:", error)
@@ -127,9 +126,8 @@ export default function AccountsPage() {
       const [username, password, twoFaCode, proxyIp, proxyPort, proxyUser, proxyPass] =
         line.split(",").map((s) => s.trim())
 
-      await fetch("/api/accounts", {
+      await agentFetch("/api/accounts", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           username,
           password,
@@ -157,9 +155,8 @@ export default function AccountsPage() {
 
       // Llamar al agente local para iniciar sesión
       try {
-        await fetch("http://localhost:8765/api/login", {
+        await agentFetch("/api/login", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             accountId: account.id,
             username: account.username,
@@ -438,9 +435,8 @@ export default function AccountsPage() {
                           className="h-8 w-8"
                           onClick={() => {
                             // Abrir cuenta individual
-                            fetch("http://localhost:8765/api/login", {
+                            void agentFetch("/api/login", {
                               method: "POST",
-                              headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
                                 accountId: account.id,
                                 username: account.username,

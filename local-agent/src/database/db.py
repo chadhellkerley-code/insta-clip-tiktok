@@ -1,4 +1,3 @@
-import json
 import os
 from datetime import datetime
 from sqlalchemy import create_engine, Column, String, Integer, DateTime, Boolean, Text, ForeignKey
@@ -6,9 +5,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DB_PATH = os.path.join(BASE_DIR, "..", "web-app", "prisma", "dev.db")
+DATA_DIR = os.path.join(BASE_DIR, "data")
+DEFAULT_DB_PATH = os.path.join(DATA_DIR, "agent.db")
+DATABASE_URL = os.getenv("LOCAL_AGENT_DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
-engine = create_engine(f"sqlite:///{DB_PATH}", echo=False)
+os.makedirs(DATA_DIR, exist_ok=True)
+
+engine_kwargs = {"echo": False}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -76,6 +83,22 @@ class CampaignSetting(Base):
     messagesPerAccount = Column(Integer, default=50)
     failureThreshold = Column(Integer, default=5)
     updatedAt = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class Campaign(Base):
+    __tablename__ = "campaigns"
+
+    id = Column(String, primary_key=True)
+    status = Column(String, default="stopped")
+    startedAt = Column(DateTime, nullable=True)
+    stoppedAt = Column(DateTime, nullable=True)
+    totalSent = Column(Integer, default=0)
+    totalFailed = Column(Integer, default=0)
+    activeAccounts = Column(Integer, default=0)
+    blockedAccounts = Column(Integer, default=0)
+    createdAt = Column(DateTime, default=datetime.utcnow)
+
+def init_db():
+    Base.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()

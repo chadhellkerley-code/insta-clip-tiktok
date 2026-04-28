@@ -1,7 +1,10 @@
+"use client"
+
+import { useCallback, useEffect, useState } from "react"
 import { Sidebar } from "@/components/sidebar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { prisma } from "@/lib/prisma"
+import { agentFetch, getAgentBaseUrl } from "@/lib/local-agent"
 import {
   Users,
   MessageSquare,
@@ -11,32 +14,47 @@ import {
   AlertCircle,
 } from "lucide-react"
 
-async function getStats() {
-  const totalAccounts = await prisma.account.count()
-  const activeAccounts = await prisma.account.count({ where: { status: "active" } })
-  const totalLeads = await prisma.lead.count()
-  const freeLeads = await prisma.lead.count({ where: { status: "free" } })
-  const contactedLeads = await prisma.lead.count({ where: { status: "contacted" } })
-  const rejectedLeads = await prisma.lead.count({ where: { status: "rejected" } })
-  const totalMessages = await prisma.message.count()
-  const totalLogs = await prisma.messageLog.count()
-  const failedLogs = await prisma.messageLog.count({ where: { status: "failed" } })
-
-  return {
-    totalAccounts,
-    activeAccounts,
-    totalLeads,
-    freeLeads,
-    contactedLeads,
-    rejectedLeads,
-    totalMessages,
-    totalLogs,
-    failedLogs,
-  }
+interface DashboardStats {
+  totalAccounts: number
+  activeAccounts: number
+  totalLeads: number
+  freeLeads: number
+  contactedLeads: number
+  rejectedLeads: number
+  totalMessages: number
+  totalLogs: number
+  failedLogs: number
 }
 
-export default async function HomePage() {
-  const stats = await getStats()
+const emptyStats: DashboardStats = {
+  totalAccounts: 0,
+  activeAccounts: 0,
+  totalLeads: 0,
+  freeLeads: 0,
+  contactedLeads: 0,
+  rejectedLeads: 0,
+  totalMessages: 0,
+  totalLogs: 0,
+  failedLogs: 0,
+}
+
+export default function HomePage() {
+  const [stats, setStats] = useState<DashboardStats>(emptyStats)
+  const [connectionError, setConnectionError] = useState<string | null>(null)
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const data = await agentFetch<DashboardStats>("/api/dashboard")
+      setStats(data)
+      setConnectionError(null)
+    } catch (error) {
+      setConnectionError(error instanceof Error ? error.message : "No se pudo conectar con el agente local")
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   return (
     <>
@@ -49,6 +67,13 @@ export default async function HomePage() {
             </h1>
             <p className="text-gray-400">Resumen general del sistema</p>
           </div>
+
+          {connectionError && (
+            <div className="mb-6 rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+              La app desplegada necesita el agente local corriendo en{" "}
+              <span className="font-mono">{getAgentBaseUrl()}</span>. Error actual: {connectionError}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card className="bg-tiktok-gray border-white/10">
@@ -132,21 +157,21 @@ export default async function HomePage() {
                       <div className="w-2 h-2 rounded-full bg-green-500" />
                       <span className="text-sm">Campaña iniciada</span>
                     </div>
-                    <span className="text-xs text-gray-500">Hace 2h</span>
+                    <span className="text-xs text-gray-500">En tiempo real vía agente</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 rounded-full bg-tiktok-cyan" />
-                      <span className="text-sm">Nueva cuenta agregada</span>
+                      <span className="text-sm">Cuentas y leads sincronizados</span>
                     </div>
-                    <span className="text-xs text-gray-500">Hace 5h</span>
+                    <span className="text-xs text-gray-500">Browser {getAgentBaseUrl()}</span>
                   </div>
                   <div className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-2 h-2 rounded-full bg-tiktok-red" />
-                      <span className="text-sm">Lead contactado</span>
+                      <span className="text-sm">Sin backend remoto obligatorio</span>
                     </div>
-                    <span className="text-xs text-gray-500">Hace 8h</span>
+                    <span className="text-xs text-gray-500">UI lista para Vercel</span>
                   </div>
                 </div>
               </CardContent>

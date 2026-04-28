@@ -19,6 +19,7 @@ import {
   Clock,
   RotateCcw,
 } from "lucide-react"
+import { agentFetch } from "@/lib/local-agent"
 
 interface Campaign {
   id: string
@@ -63,8 +64,7 @@ export default function CampaignPage() {
 
   const fetchCampaign = useCallback(async () => {
     try {
-      const res = await fetch("/api/campaigns")
-      const data = await res.json()
+      const data = await agentFetch<Campaign[]>("/api/campaigns")
       if (data.length > 0) {
         setCampaign(data[0])
         setIsRunning(data[0].status === "running")
@@ -76,8 +76,7 @@ export default function CampaignPage() {
 
   const fetchSettings = useCallback(async () => {
     try {
-      const res = await fetch("/api/settings")
-      const data = await res.json()
+      const data = await agentFetch<CampaignSetting>("/api/settings")
       setSettings(data)
     } catch (error) {
       console.error("Error fetching settings:", error)
@@ -102,16 +101,8 @@ export default function CampaignPage() {
 
   const handleStart = async () => {
     try {
-      await fetch("/api/campaigns", {
+      await agentFetch("/api/campaign/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "running" }),
-      })
-
-      // Llamar al agente local
-      await fetch("http://localhost:8765/api/campaign/start", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
       })
 
       setIsRunning(true)
@@ -123,9 +114,8 @@ export default function CampaignPage() {
 
   const handleStop = async () => {
     try {
-      await fetch("http://localhost:8765/api/campaign/stop", {
+      await agentFetch("/api/campaign/stop", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
       })
       setIsRunning(false)
       fetchCampaign()
